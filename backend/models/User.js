@@ -19,6 +19,21 @@ const User = sequelize.define(
         },
       },
     },
+    username: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      unique: true,
+      validate: {
+        len: {
+          args: [3, 30],
+          msg: 'Username must be between 3 and 30 characters',
+        },
+        is: {
+          args: /^[a-zA-Z0-9_]+$/i,
+          msg: 'Username can only contain letters, numbers, and underscores',
+        },
+      },
+    },
     email: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -55,6 +70,18 @@ const User = sequelize.define(
     },
     courseInterested: {
       type: DataTypes.STRING,
+      allowNull: true,
+    },
+    profilePic: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    gender: {
+      type: DataTypes.ENUM('male', 'female', 'other'),
+      allowNull: true,
+    },
+    dob: {
+      type: DataTypes.DATEONLY,
       allowNull: true,
     },
     isActive: {

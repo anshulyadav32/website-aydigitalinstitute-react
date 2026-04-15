@@ -9,10 +9,10 @@ const sequelize = new Sequelize(
     port: process.env.DB_PORT || 5432,
     dialect: 'postgres',
     dialectOptions: {
-      ssl: {
+      ssl: process.env.DB_SSL === 'true' ? {
         require: true,
         rejectUnauthorized: false,
-      },
+      } : false,
     },
     logging: process.env.NODE_ENV === 'development' ? console.log : false,
     pool: {
@@ -31,7 +31,7 @@ const connectDB = async () => {
     
     // Sync models (in development, use { alter: true } or { force: true } carefully)
     if (process.env.NODE_ENV === 'development') {
-      await sequelize.sync({ alter: false });
+      await sequelize.sync({ alter: true });
       console.log('Database models synchronized.');
     }
   } catch (error) {

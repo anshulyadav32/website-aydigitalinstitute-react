@@ -52,17 +52,17 @@ const Hero = () => {
           </div>
 
           {/* Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mt-16">
             {heroStats.map((stat, index) => (
               <div
                 key={index}
-                className="bg-white p-6 rounded-xl shadow-lg border border-primary-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 scale-in"
+                className={`bg-white p-4 md:p-6 rounded-xl shadow-lg border border-primary-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 scale-in ${index === 2 ? 'col-span-2 md:col-span-1' : ''}`}
                 style={{ animationDelay: `${(index + 1) * 0.2}s` }}
               >
-                <div className="text-3xl md:text-4xl font-bold text-primary-600 mb-2">
+                <div className="text-2xl md:text-4xl font-bold text-primary-600 mb-1 md:mb-2">
                   {stat.value}
                 </div>
-                <div className="text-gray-600 font-medium">{stat.label}</div>
+                <div className="text-xs md:text-base text-gray-600 font-medium">{stat.label}</div>
               </div>
             ))}
           </div>

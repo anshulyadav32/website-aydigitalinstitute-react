@@ -26,7 +26,7 @@ const WhyChooseUs = () => {
           We're committed to your success with practical training and personalized support.
         </SectionSubtitle>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {whyChooseUsData.map((reason, index) => {
             const IconComponent = iconMap[reason.icon];
             return (

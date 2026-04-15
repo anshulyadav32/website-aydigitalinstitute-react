@@ -26,11 +26,22 @@ const Contact = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    alert('Thank you for your inquiry! We will contact you soon.');
-    setFormData({ name: '', phone: '', course: '', message: '' });
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/inquiry`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      const data = await response.json();
+      if (data.success) {
+        alert('Thank you for your inquiry! We will contact you soon.');
+        setFormData({ name: '', phone: '', course: '', message: '' });
+      }
+    } catch (err) {
+      alert('Failed to send inquiry. Please try again.');
+    }
   };
 
   const courses = getCourseList(coursesData);
