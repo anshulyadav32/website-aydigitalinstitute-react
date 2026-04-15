@@ -1,26 +1,19 @@
 import multer from 'multer';
-import multerS3 from 'multer-s3';
-import { S3Client } from '@aws-sdk/client-s3';
+import { createClient } from '@supabase/supabase-js';
 import path from 'path';
+import dotenv from 'dotenv';
 
-export const s3Client = new S3Client({
-  region: 'auto',
-  endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-  credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
-  },
-});
+dotenv.config();
 
-const storage = multerS3({
-  s3: s3Client,
-  bucket: process.env.R2_BUCKET_NAME,
-  contentType: multerS3.AUTO_CONTENT_TYPE,
-  key: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, `profile-pics/user-${req.user.id}-${uniqueSuffix}${path.extname(file.originalname)}`);
-  }
-});
+// Initialize Supabase Client
+// We export this so it can be used for manual uploads in route handlers
+export const supabase = createClient(
+  process.env.SUPABASE_URL || '',
+  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+);
+
+// Memory storage is used because the Supabase SDK handles the upload from the buffer
+const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
   const allowedTypes = /jpeg|jpg|png|webp/;

@@ -2,8 +2,7 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import { protect } from '../middleware/auth.js';
 import User from '../models/User.js';
-import { upload, s3Client } from '../utils/fileUpload.js';
-import { DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { upload, supabase } from '../utils/fileUpload.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -56,27 +55,39 @@ router.post('/profile-pic', protect, upload.single('image'), async (req, res) =>
     // Delete old profile pic if exists
     if (user.profilePic) {
       try {
-        // Attempt to extract the key from the URL and delete the S3 object
-        let key = user.profilePic;
-        if (user.profilePic.startsWith('http')) {
-             const url = new URL(user.profilePic);
-             key = url.pathname.substring(1);
-        }
-        const deleteParams = {
-          Bucket: process.env.R2_BUCKET_NAME,
-          Key: key,
-        };
-        await s3Client.send(new DeleteObjectCommand(deleteParams));
+        // Extract the filename from the URL to delete it from Storage
+        // Supabase URL format: .../storage/v1/object/public/aydigital/profile-pics/filename
+        const urlParts = user.profilePic.split('/');
+        const fileName = urlParts[urlParts.length - 1];
+        
+        await supabase.storage
+          .from('aydigital')
+          .remove([`profile-pics/${fileName}`]);
       } catch (err) {
-        console.error('Error deleting old profile pic from R2:', err);
+        console.error('Error deleting old profile pic from Supabase:', err);
       }
     }
 
-    // Save new path (incorporates public R2 configured URL)
-    const fileKey = req.file.key;
-    const publicUrl = process.env.R2_PUBLIC_URL 
-      ? `${process.env.R2_PUBLIC_URL}/${fileKey}`
-      : req.file.location;
+    // Upload to Supabase Storage
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const fileName = `user-${req.user.id}-${uniqueSuffix}${path.extname(req.file.originalname)}`;
+    const filePath = `profile-pics/${fileName}`;
+
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('aydigital')
+      .upload(filePath, req.file.buffer, {
+        contentType: req.file.mimetype,
+        upsert: true
+      });
+
+    if (uploadError) {
+      throw new Error(`Upload failed: ${uploadError.message}`);
+    }
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('aydigital')
+      .getPublicUrl(filePath);
       
     user.profilePic = publicUrl;
     await user.save();
